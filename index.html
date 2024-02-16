@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- pyodide -->
+        <script src="https://cdn.jsdelivr.net/pyodide/v0.23.4/full/pyodide.js"></script>
+
+        <!-- ace -->
+        <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.24.2/src-min-noconflict/ace.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/ace-builds@1.24.2/src-min-noconflict/ext-language_tools.min.js"></script>
+        <link
+            href="https://cdn.jsdelivr.net/npm/ace-builds@1.24.2/css/ace.min.css"
+            rel="stylesheet"
+        />
+
+        <!-- custom -->
+        <style type="text/css" media="screen">
+            body {
+                max-width: 1080px;
+                margin: 50px auto;
+                /* background-color: black; */
+            }
+            h1 {
+                text-align: center;
+                /* color: white; */
+            }
+            h2 {
+                /* color: white; */
+                margin: 20px 0px 0px 0px;
+            }
+            label,
+            p {
+                /* color: white; */
+                margin: 0px;
+            }
+            textarea {
+                width: 100%;
+                resize: vertical;
+            }
+
+            .ace_editor {
+                border: 1px solid lightgray;
+                margin: auto;
+                height: 200px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Custom Test</h1>
+        <h2>Editor</h2>
+        <pre id="editor">
+def main():
+    N = int(input())
+    res = solve(N)
+    print(res)
+
+
+def solve(N):
+    res = N
+    return res
+
+
+if __name__ == "__main__":
+    main()
+</pre
+        >
+        <h2>Input</h2>
+        <textarea rows="5" id="input">0</textarea>
+        <div>
+            <button type="button" onclick="main()">run</button>
+            <button type="button" onclick="format()">format & copy</button>
+            <label><input id="packages" type="checkbox" />load packages</label>
+        </div>
+        <h2>State</h2>
+        <p id="state">None</p>
+        <h2>Output</h2>
+        <textarea rows="5" id="output" disabled></textarea>
+        <h2>Error</h2>
+        <textarea rows="5" id="error" disabled></textarea>
+        <script type="text/javascript">
+            // editor の設定
+            const editor = ace.edit("editor", {
+                // theme: "ace/theme/github",
+                theme: "ace/theme/monokai",
+                mode: "ace/mode/python",
+                autoScrollEditorIntoView: true,
+                minLines: 5,
+                maxLines: 30,
+                showPrintMargin: false,
+                enableBasicAutocompletion: true,
+                enableLiveAutocompletion: true,
+                enableSnippets: true,
+            })
+            editor.renderer.setScrollMargin(10, 10, 0, 0)
+
+            // 要素の取得
+            const state = document.getElementById("state")
+            const input = document.getElementById("input")
+            const output = document.getElementById("output")
+            const error = document.getElementById("error")
+            const packages = document.getElementById("packages")
+
+            // 実行の定義
+            const main = async () => {
+                output.value = ""
+                error.value = ""
+                state.textContent = "Running..."
+                const pyodide = await loadPyodide({
+                    stdin: () => input.value,
+                    stdout: (res) => (output.value += res + "\n"),
+                })
+                if (packages.checked) {
+                    await pyodide.loadPackage("numpy")
+                    await pyodide.loadPackage("scipy")
+                    await pyodide.loadPackage("networkx")
+                    await pyodide.loadPackage("sympy")
+                    // await pyodide.loadPackage("sortedcontainers")
+                    await pyodide.loadPackage("more-itertools")
+                    await pyodide.loadPackage("shapely")
+                    await pyodide.loadPackage("bitarray")
+                    // await pyodide.loadPackage("PuLP")
+                    await pyodide.loadPackage("mpmath")
+                    await pyodide.loadPackage("pandas")
+                    // await pyodide.loadPackage("z3-solver")
+                    await pyodide.loadPackage("scikit-learn")
+                    // await pyodide.loadPackage("ortools")
+                    // await pyodide.loadPackage("torch")
+                    // await pyodide.loadPackage("polars")
+                    await pyodide.loadPackage("lightgbm")
+                    await pyodide.loadPackage("gmpy2")
+                    // await pyodide.loadPackage("numba")
+                    // await pyodide.loadPackage("git+https://github.com/not522/ac-library-python")
+                }
+                try {
+                    const st = Date.now()
+                    pyodide.runPython(editor.getValue())
+                    const en = Date.now()
+                    state.textContent = `Success (${en - st} ms)`
+                } catch (err) {
+                    error.value += err
+                    state.textContent = "Error"
+                }
+            }
+
+            // フォーマッター
+            const format = async () => {
+                output.value = ""
+                error.value = ""
+                state.textContent = "Formatting..."
+                const pyodide = await loadPyodide({})
+                await pyodide.loadPackage("micropip")
+                const micropip = pyodide.pyimport("micropip")
+                await micropip.install("black")
+                pyodide.globals.set("code", editor.getValue())
+                try {
+                    pyodide.runPython(`
+                        import black
+                        try:
+                            formatted_code = black.format_file_contents(code, fast=False, mode=black.Mode())
+                        except black.NothingChanged:
+                            formatted_code = code
+                    `)
+                    const formatted_code = pyodide.globals.get("formatted_code")
+                    navigator.clipboard.writeText(formatted_code)
+                    editor.setValue(formatted_code)
+                    state.textContent = `Success Formatting`
+                } catch (err) {
+                    error.value += err
+                    // navigator.clipboard.writeText(editor.getValue())
+                    state.textContent = "Error Formatting"
+                }
+            }
+        </script>
+    </body>
+</html>
