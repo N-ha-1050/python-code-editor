@@ -1,0 +1,56 @@
+:root {
+  --primary-color: black;
+  --background-color: white;
+  --secondary-background-color: #eee;
+  --font-family: sans-serif;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-color: #024;
+    --primary-color: white;
+    --secondary-background-color: #012;
+    --font-family: sans-serif;
+  }
+}
+
+body {
+  background-color: var(--background-color);
+  color: var(--primary-color);
+  max-width: 1080px;
+  margin: auto;
+}
+
+h1 {
+  text-align: center;
+}
+
+h2 {
+  margin-bottom: 0;
+}
+
+textarea {
+  width: 100%;
+  resize: vertical;
+  background-color: var(--secondary-background-color);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  padding: 8px;
+}
+
+textarea:disabled {
+  opacity: 0.5;
+}
+
+button {
+  background-color: var(--secondary-background-color);
+  color: var(--primary-color);
+  border-color: var(--primary-color);
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
