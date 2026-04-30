@@ -1,5 +1,5 @@
 import { loadPyodide } from "pyodide"
-import { PACKAGE_BASE_URL } from "./config"
+import { PYODIDE_INDEX_URL } from "./config"
 import type { RunWorkerRequest, RunWorkerResponse, WithId } from "./workerApi"
 
 const createStdio = (input: string | null) => {
@@ -22,7 +22,7 @@ const createStdio = (input: string | null) => {
 }
 
 const pyodideReadyPromise = loadPyodide({
-  packageBaseUrl: PACKAGE_BASE_URL,
+  indexURL: PYODIDE_INDEX_URL,
 })
 
 self.onmessage = async (event: MessageEvent<WithId<RunWorkerRequest>>) => {

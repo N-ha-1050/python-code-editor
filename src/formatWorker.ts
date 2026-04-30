@@ -1,5 +1,5 @@
 import { loadPyodide } from "pyodide"
-import { PACKAGE_BASE_URL } from "./config"
+import { PYODIDE_INDEX_URL } from "./config"
 import type {
   FormatWorkerRequest,
   FormatWorkerResponse,
@@ -7,7 +7,7 @@ import type {
 } from "./workerApi"
 
 const pyodideReadyPromise = loadPyodide({
-  packageBaseUrl: PACKAGE_BASE_URL,
+  indexURL: PYODIDE_INDEX_URL,
 })
 
 self.onmessage = async (event: MessageEvent<WithId<FormatWorkerRequest>>) => {
