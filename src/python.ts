@@ -1,92 +1,44 @@
-import { loadPyodide, version } from "pyodide"
 import { editor } from "./editor"
 import {
   errorTextArea,
   formatButton,
   inputTextArea,
   isButton,
-  isInput,
   isP,
   isTextArea,
   outputTextArea,
-  packagesInput,
   runButton,
   stateP,
 } from "./elements"
-
-const PACKAGE_BASE_URL = `https://cdn.jsdelivr.net/pyodide/v${version}/full/`
-
-const createStdin = () => {
-  if (!isTextArea(inputTextArea)) return () => null
-
-  let input: string | null = inputTextArea.value
-  return () => {
-    const value = input
-    input = null
-    return value
-  }
-}
-
-const createStdout = (formatter = (msg: string) => `${msg}`) => {
-  return (msg: string) => {
-    if (!isTextArea(outputTextArea)) return
-
-    outputTextArea.value += `${formatter(msg)}\n`
-  }
-}
-
-const createStderr = (formatter = (msg: string) => `${msg}`) => {
-  return (msg: string) => {
-    if (!isTextArea(errorTextArea)) return
-
-    errorTextArea.value += `${formatter(msg)}\n`
-  }
-}
+import { formatAsync, runAsync } from "./workerApi"
 
 export async function run() {
   if (!isButton(runButton)) return
   if (!isTextArea(inputTextArea)) return
   if (!isTextArea(outputTextArea)) return
   if (!isTextArea(errorTextArea)) return
-  if (!isInput(packagesInput)) return
   if (!isP(stateP)) return
 
   runButton.disabled = true
   stateP.textContent = "Running..."
-
   inputTextArea.disabled = true
+
   outputTextArea.value = ""
   errorTextArea.value = ""
 
-  const packageNames = packagesInput.value
-    .split(/\s+/)
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0)
+  const code = editor.getValue()
 
-  const pyodide = await loadPyodide({
-    packageBaseUrl: PACKAGE_BASE_URL,
-    stdin: createStdin(),
-    stdout: createStdout(),
-    stderr: createStderr(),
-  })
+  const { success, out, err, executionTime } = await runAsync(
+    code,
+    inputTextArea.value,
+  )
 
-  try {
-    for (const packageName of packageNames) {
-      await pyodide.loadPackage(packageName, {
-        messageCallback: createStderr((msg) => `[Editor Info] ${msg}`),
-      })
-    }
-    const st = Date.now()
-    await pyodide.runPythonAsync(editor.getValue())
-    const en = Date.now()
-    stateP.textContent = `Success (${en - st} ms)`
-  } catch (error) {
-    errorTextArea.value += `${error}\n`
-    stateP.textContent = "Error"
-  } finally {
-    inputTextArea.disabled = false
-    runButton.disabled = false
-  }
+  outputTextArea.value = out
+  errorTextArea.value = err
+
+  inputTextArea.disabled = false
+  stateP.textContent = success ? `Success (${executionTime} ms)` : "Error"
+  runButton.disabled = false
 }
 
 export async function formatAndCopy() {
@@ -99,34 +51,17 @@ export async function formatAndCopy() {
 
   errorTextArea.value = ""
 
-  const pyodide = await loadPyodide({
-    packageBaseUrl: PACKAGE_BASE_URL,
-  })
-  await pyodide.loadPackage("micropip")
-  const micropip = pyodide.pyimport("micropip")
-  await micropip.install("black")
-  await micropip.install("isort")
+  const response = await formatAsync(editor.getValue())
 
-  try {
-    pyodide.globals.set("code", editor.getValue())
-    const formattedCode = pyodide.runPython(`
-import black
-import isort
-from black import FileMode
-
-try:
-    formatted_code = black.format_str(code, mode=FileMode())
-    formatted_code = isort.code(formatted_code, profile="black")
-except black.NothingChanged:
-    formatted_code = code
-formatted_code
-`)
-    editor.setValue(formattedCode, -1)
-    navigator.clipboard.writeText(formattedCode)
-  } catch (error) {
-    errorTextArea.value += `${error}\n`
-  } finally {
-    stateP.textContent = "Copied formatted code to clipboard!"
+  if (!response.success) {
+    errorTextArea.value = response.error
+    stateP.textContent = "Error formatting code"
     formatButton.disabled = false
+    return
   }
+
+  editor.setValue(response.formattedCode, -1)
+  navigator.clipboard.writeText(response.formattedCode)
+  stateP.textContent = "Copied formatted code to clipboard!"
+  formatButton.disabled = false
 }
