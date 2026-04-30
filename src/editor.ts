@@ -3,6 +3,7 @@ import "ace-builds/src-noconflict/mode-python"
 import "ace-builds/src-noconflict/theme-github"
 import "ace-builds/src-noconflict/theme-github_dark"
 import "ace-builds/src-noconflict/keybinding-vscode"
+import "ace-builds/src-noconflict/ext-language_tools"
 import template_python_code from "./main.py?raw"
 
 const media = window.matchMedia("(prefers-color-scheme: dark)")
