@@ -30,6 +30,14 @@ h2 {
   margin-bottom: 0;
 }
 
+a {
+  color: var(--primary-color);
+}
+
+a:hover {
+  opacity: 0.8;
+}
+
 textarea {
   box-sizing: border-box;
   width: 100%;
@@ -56,4 +64,8 @@ button {
 button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+button:hover {
+  opacity: 0.8;
 }
