@@ -19,7 +19,6 @@ export async function run() {
   if (!isTextArea(errorTextArea)) return
   if (!isP(stateP)) return
 
-  // runButton.disabled = true
   runButton.textContent = "Interrupt"
   runButton.removeEventListener("click", run)
   runButton.addEventListener("click", interrupt)
@@ -44,7 +43,6 @@ export async function run() {
   runButton.removeEventListener("click", interrupt)
   runButton.addEventListener("click", run)
   runButton.textContent = "Run"
-  // runButton.disabled = false
 }
 
 export async function formatAndCopy() {
