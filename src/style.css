@@ -19,6 +19,7 @@ body {
   color: var(--primary-color);
   max-width: 1080px;
   margin: auto;
+  margin-bottom: 48px;
 }
 
 h1 {
@@ -30,6 +31,7 @@ h2 {
 }
 
 textarea {
+  box-sizing: border-box;
   width: 100%;
   resize: vertical;
   background-color: var(--secondary-background-color);
@@ -40,6 +42,7 @@ textarea {
 
 textarea:disabled {
   opacity: 0.5;
+  cursor: not-allowed;
 }
 
 button {
