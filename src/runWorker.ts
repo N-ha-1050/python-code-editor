@@ -26,45 +26,59 @@ const pyodideReadyPromise = loadPyodide({
 })
 
 self.onmessage = async (event: MessageEvent<WithId<RunWorkerRequest>>) => {
-  const { id, code, input } = event.data
+  const { type } = event.data
 
-  const { output, ...stdio } = createStdio(input)
-
-  const pyodide = await pyodideReadyPromise
-  pyodide.setStdin({ stdin: stdio.stdin })
-  pyodide.setStdout({ batched: stdio.stdout })
-  pyodide.setStderr({ batched: stdio.stderr })
-
-  try {
-    await pyodide.loadPackagesFromImports(code, {
-      messageCallback: (msg: string) => {
-        stdio.stderr(`[Editor Info] ${msg}`)
-      },
-    })
-
-    const st = Date.now()
-    await pyodide.runPythonAsync(code)
-    const en = Date.now()
-
-    const response: WithId<RunWorkerResponse> = {
-      id,
-      success: true,
-      ...output,
-      executionTime: en - st,
+  switch (type) {
+    case "interrupt": {
+      const { interruptBuffer } = event.data
+      const pyodide = await pyodideReadyPromise
+      pyodide.setInterruptBuffer(interruptBuffer)
+      return
     }
+    case "run": {
+      const { id, code, input } = event.data
 
-    self.postMessage(response)
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : String(error)
-    stdio.stderr(errorMessage)
+      const { output, ...stdio } = createStdio(input)
 
-    const response: WithId<RunWorkerResponse> = {
-      id,
-      success: false,
-      ...output,
-      executionTime: null,
+      const pyodide = await pyodideReadyPromise
+      pyodide.setStdin({ stdin: stdio.stdin })
+      pyodide.setStdout({ batched: stdio.stdout })
+      pyodide.setStderr({ batched: stdio.stderr })
+
+      try {
+        await pyodide.loadPackagesFromImports(code, {
+          messageCallback: (msg: string) => {
+            stdio.stderr(`[Editor Info] ${msg}`)
+          },
+        })
+
+        const st = Date.now()
+        await pyodide.runPythonAsync(code)
+        const en = Date.now()
+
+        const response: WithId<RunWorkerResponse> = {
+          id,
+          success: true,
+          ...output,
+          executionTime: en - st,
+        }
+
+        self.postMessage(response)
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : String(error)
+        stdio.stderr(errorMessage)
+
+        const response: WithId<RunWorkerResponse> = {
+          id,
+          success: false,
+          ...output,
+          executionTime: null,
+        }
+
+        self.postMessage(response)
+      }
+      return
     }
-
-    self.postMessage(response)
   }
 }

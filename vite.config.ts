@@ -27,4 +27,10 @@ export function viteStaticCopyPyodide() {
 export default {
   optimizeDeps: { exclude: ["pyodide"] },
   plugins: [viteStaticCopyPyodide()],
+  server: {
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp",
+    },
+  },
 } satisfies UserConfig

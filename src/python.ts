@@ -10,7 +10,7 @@ import {
   runButton,
   stateP,
 } from "./elements"
-import { formatAsync, runAsync } from "./workerApi"
+import { formatAsync, interrupt, runAsync } from "./workerApi"
 
 export async function run() {
   if (!isButton(runButton)) return
@@ -19,7 +19,10 @@ export async function run() {
   if (!isTextArea(errorTextArea)) return
   if (!isP(stateP)) return
 
-  runButton.disabled = true
+  // runButton.disabled = true
+  runButton.textContent = "Interrupt"
+  runButton.removeEventListener("click", run)
+  runButton.addEventListener("click", interrupt)
   stateP.textContent = "Running..."
   inputTextArea.disabled = true
 
@@ -38,7 +41,10 @@ export async function run() {
 
   inputTextArea.disabled = false
   stateP.textContent = success ? `Success (${executionTime} ms)` : "Error"
-  runButton.disabled = false
+  runButton.removeEventListener("click", interrupt)
+  runButton.addEventListener("click", run)
+  runButton.textContent = "Run"
+  // runButton.disabled = false
 }
 
 export async function formatAndCopy() {

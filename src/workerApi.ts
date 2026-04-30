@@ -24,10 +24,16 @@ function requestResponse<WorkerRequest, WorkerResponse>(
   return promise
 }
 
-export type RunWorkerRequest = {
-  code: string
-  input: string | null
-}
+export type RunWorkerRequest =
+  | {
+      type: "run"
+      code: string
+      input: string | null
+    }
+  | {
+      type: "interrupt"
+      interruptBuffer: Uint8Array<SharedArrayBuffer>
+    }
 
 export type RunWorkerResponse = {
   out: string
@@ -44,12 +50,23 @@ export type RunWorkerResponse = {
 )
 
 const runWorker = new RunWorker()
+const interruptBuffer = new Uint8Array(new SharedArrayBuffer(1))
+requestResponse<RunWorkerRequest, RunWorkerResponse>(runWorker, {
+  type: "interrupt",
+  interruptBuffer,
+})
 
 export function runAsync(code: string, input: string | null) {
+  interruptBuffer[0] = 0
   return requestResponse<RunWorkerRequest, RunWorkerResponse>(runWorker, {
+    type: "run",
     code,
     input,
   })
+}
+
+export function interrupt() {
+  interruptBuffer[0] = 2
 }
 
 export type FormatWorkerRequest = {
