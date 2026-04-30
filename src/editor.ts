@@ -42,7 +42,6 @@ editor.commands.addCommands([
       const code = editor.getValue()
       localStorage.setItem(CODE_LOCALSTORAGE_KEY, code)
     },
-    readOnly: true,
   },
   {
     name: "loadLocalStorage",
@@ -55,7 +54,6 @@ editor.commands.addCommands([
       }
       editor.setValue(code, -1)
     },
-    readOnly: false,
   },
   {
     name: "newFile",
@@ -63,7 +61,6 @@ editor.commands.addCommands([
     exec: () => {
       editor.setValue(template_python_code, -1)
     },
-    readOnly: false,
   },
   {
     name: "saveAsFile",
@@ -78,7 +75,6 @@ editor.commands.addCommands([
       a.click()
       URL.revokeObjectURL(url)
     },
-    readOnly: true,
   },
   {
     name: "loadFromFile",
@@ -104,22 +100,20 @@ editor.commands.addCommands([
           editor.setValue(code, -1)
         }
         reader.readAsText(file)
+        input.remove()
       }
       input.click()
     },
-    readOnly: false,
   },
   {
     name: "runCode",
     bindKey: { win: "Ctrl-Shift-E", mac: "Command-Shift-E" },
     exec: run,
-    readOnly: true,
   },
   {
     name: "formatCode",
     bindKey: { win: "Ctrl-Shift-F", mac: "Command-Shift-F" },
     exec: formatAndCopy,
-    readOnly: true,
   },
 ])
 

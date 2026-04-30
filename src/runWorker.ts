@@ -1,6 +1,12 @@
 import { loadPyodide } from "pyodide"
 import { PYODIDE_INDEX_URL } from "./config"
-import type { RunWorkerRequest, RunWorkerResponse, WithId } from "./workerApi"
+import type {
+  RunInterruptRequest,
+  RunInterruptResponse,
+  RunWorkerRequest,
+  RunWorkerResponse,
+  WithId,
+} from "./workerApi"
 
 const createStdio = (input: string | null) => {
   const output = { out: "", err: "" }
@@ -25,7 +31,9 @@ const pyodideReadyPromise = loadPyodide({
   indexURL: PYODIDE_INDEX_URL,
 })
 
-self.onmessage = async (event: MessageEvent<WithId<RunWorkerRequest>>) => {
+self.onmessage = async (
+  event: MessageEvent<WithId<RunWorkerRequest | RunInterruptRequest>>,
+) => {
   const { type } = event.data
 
   switch (type) {
@@ -33,6 +41,12 @@ self.onmessage = async (event: MessageEvent<WithId<RunWorkerRequest>>) => {
       const { interruptBuffer } = event.data
       const pyodide = await pyodideReadyPromise
       pyodide.setInterruptBuffer(interruptBuffer)
+      const response: WithId<RunInterruptResponse> = {
+        id: event.data.id,
+        type: "interrupt",
+        success: true,
+      }
+      self.postMessage(response)
       return
     }
     case "run": {
@@ -58,6 +72,7 @@ self.onmessage = async (event: MessageEvent<WithId<RunWorkerRequest>>) => {
 
         const response: WithId<RunWorkerResponse> = {
           id,
+          type: "run",
           success: true,
           ...output,
           executionTime: en - st,
@@ -71,6 +86,7 @@ self.onmessage = async (event: MessageEvent<WithId<RunWorkerRequest>>) => {
 
         const response: WithId<RunWorkerResponse> = {
           id,
+          type: "run",
           success: false,
           ...output,
           executionTime: null,

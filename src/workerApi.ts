@@ -24,18 +24,14 @@ function requestResponse<WorkerRequest, WorkerResponse>(
   return promise
 }
 
-export type RunWorkerRequest =
-  | {
-      type: "run"
-      code: string
-      input: string | null
-    }
-  | {
-      type: "interrupt"
-      interruptBuffer: Uint8Array<SharedArrayBuffer>
-    }
+export type RunWorkerRequest = {
+  type: "run"
+  code: string
+  input: string | null
+}
 
 export type RunWorkerResponse = {
+  type: "run"
   out: string
   err: string
 } & (
@@ -49,12 +45,30 @@ export type RunWorkerResponse = {
     }
 )
 
+export type RunInterruptRequest = {
+  type: "interrupt"
+  interruptBuffer: Uint8Array<SharedArrayBuffer>
+}
+
+export type RunInterruptResponse = {
+  type: "interrupt"
+  success: boolean
+}
+
 const runWorker = new RunWorker()
 const interruptBuffer = new Uint8Array(new SharedArrayBuffer(1))
-requestResponse<RunWorkerRequest, RunWorkerResponse>(runWorker, {
+const { success } = await requestResponse<
+  RunInterruptRequest,
+  RunInterruptResponse
+>(runWorker, {
   type: "interrupt",
   interruptBuffer,
 })
+if (!success) {
+  console.error(
+    "Failed to initialize interrupt buffer: run worker did not acknowledge interrupt setup. Interrupt requests may not work until the page is reloaded.",
+  )
+}
 
 export function runAsync(code: string, input: string | null) {
   interruptBuffer[0] = 0

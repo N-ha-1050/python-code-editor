@@ -19,30 +19,37 @@ export async function run() {
   if (!isTextArea(errorTextArea)) return
   if (!isP(stateP)) return
 
+  // 復帰必須の要素
   runButton.textContent = "Interrupt"
   runButton.removeEventListener("click", run)
   runButton.addEventListener("click", interrupt)
   stateP.textContent = "Running..."
   inputTextArea.disabled = true
 
+  // 出力の初期化
   outputTextArea.value = ""
   errorTextArea.value = ""
 
-  const code = editor.getValue()
+  try {
+    const { success, out, err, executionTime } = await runAsync(
+      editor.getValue(),
+      inputTextArea.value,
+    )
 
-  const { success, out, err, executionTime } = await runAsync(
-    code,
-    inputTextArea.value,
-  )
+    outputTextArea.value = out
+    errorTextArea.value = err
 
-  outputTextArea.value = out
-  errorTextArea.value = err
-
-  inputTextArea.disabled = false
-  stateP.textContent = success ? `Success (${executionTime} ms)` : "Error"
-  runButton.removeEventListener("click", interrupt)
-  runButton.addEventListener("click", run)
-  runButton.textContent = "Run"
+    stateP.textContent = success ? `Success (${executionTime} ms)` : "Error"
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    errorTextArea.value = errorMessage
+    stateP.textContent = `Internal Editor Error: ${errorMessage}`
+  } finally {
+    inputTextArea.disabled = false
+    runButton.removeEventListener("click", interrupt)
+    runButton.addEventListener("click", run)
+    runButton.textContent = "Run"
+  }
 }
 
 export async function formatAndCopy() {
@@ -50,22 +57,29 @@ export async function formatAndCopy() {
   if (!isTextArea(errorTextArea)) return
   if (!isP(stateP)) return
 
+  // 復帰必須の要素
   formatButton.disabled = true
   stateP.textContent = "Formatting..."
 
+  // 出力の初期化
   errorTextArea.value = ""
 
-  const response = await formatAsync(editor.getValue())
+  try {
+    const response = await formatAsync(editor.getValue())
 
-  if (!response.success) {
-    errorTextArea.value = response.error
-    stateP.textContent = "Error formatting code"
+    if (!response.success) {
+      errorTextArea.value = response.error
+      stateP.textContent = "Error formatting code"
+    } else {
+      editor.setValue(response.formattedCode, -1)
+      navigator.clipboard.writeText(response.formattedCode)
+      stateP.textContent = "Copied formatted code to clipboard!"
+    }
+  } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    errorTextArea.value = errorMessage
+    stateP.textContent = `Internal Editor Error: ${errorMessage}`
+  } finally {
     formatButton.disabled = false
-    return
   }
-
-  editor.setValue(response.formattedCode, -1)
-  navigator.clipboard.writeText(response.formattedCode)
-  stateP.textContent = "Copied formatted code to clipboard!"
-  formatButton.disabled = false
 }
