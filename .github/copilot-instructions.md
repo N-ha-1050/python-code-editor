@@ -91,7 +91,7 @@ DOM 要素へのアクセスパターン（`elements.ts` 参照）:
 Worker の通信パターン（`workerApi.ts` 参照）:
 - 各リクエストには `crypto.randomUUID()` で生成した id を付与
 - レスポンスリスナーが id を確認し、`Promise.withResolvers()` の Promise を resolve する
-- Worker のメッセージ型は `type` フィールドを持つ判別共用体を使用
+- `runWorker` のメッセージ型は `type` フィールド（`"run"` / `"interrupt"`）を持つ判別共用体を使用。`formatWorker` のメッセージ型には `type` フィールドはない
 
 `editor.ts` のキーボードショートカットは必ず `win: "Ctrl-*"` と `mac: "Command-*"` の**両方**のバインディングを定義すること。
 
