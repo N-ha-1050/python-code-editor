@@ -1,4 +1,10 @@
-import { formatButton, inputTextArea, isButton, isTextArea, runButton } from "./elements"
+import {
+  formatButton,
+  inputTextArea,
+  isButton,
+  isTextArea,
+  runButton,
+} from "./elements"
 import { formatAndCopy, run } from "./python"
 import "./style.css"
 
