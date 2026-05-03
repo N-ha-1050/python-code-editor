@@ -100,7 +100,7 @@ Worker の通信パターン（`workerApi.ts` 参照）:
 ### Python の実行
 - UI をブロックしないよう、Python は専用の **Web Worker**（`runWorker.ts`）で実行
 - 中断は `SharedArrayBuffer` + `Uint8Array` で実装 — `interruptBuffer[0] = 2` を設定すると Pyodide に SIGINT が送信される
-- `SharedArrayBuffer` には `Cross-Origin-Opener-Policy: same-origin` と `Cross-Origin-Embedder-Policy: require-corp` ヘッダーが必要 — 開発時は `vite.config.ts`、本番は `public/enable-threads.js`（Service Worker）で設定
+- `SharedArrayBuffer` には `Cross-Origin-Opener-Policy: same-origin` と、cross-origin isolation を満たす `Cross-Origin-Embedder-Policy`（開発時は `require-corp`、本番の `public/enable-threads.js` では `credentialless`）が必要
 - Pyodide は `loadPackagesFromImports()` でコード実行前にインポートからパッケージを自動ロードする
 
 ### コードフォーマット
