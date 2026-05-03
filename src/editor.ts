@@ -111,6 +111,11 @@ editor.commands.addCommands([
     exec: run,
   },
   {
+    name: "runCodeCtrlShiftF5",
+    bindKey: { win: "Ctrl-Shift-F5", mac: "Command-Shift-F5" },
+    exec: run,
+  },
+  {
     name: "formatCode",
     bindKey: { win: "Ctrl-Shift-F", mac: "Command-Shift-F" },
     exec: formatAndCopy,
