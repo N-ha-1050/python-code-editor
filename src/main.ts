@@ -16,7 +16,7 @@ function main() {
   runButton.addEventListener("click", run)
   formatButton.addEventListener("click", formatAndCopy)
   inputTextArea.addEventListener("keydown", (e) => {
-    if (e.ctrlKey && e.key === "Enter") {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
       run()
     }
   })
